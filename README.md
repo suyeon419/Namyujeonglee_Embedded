@@ -44,6 +44,9 @@
 
 **사용한 액추에이터 및 센서**
 
+![RGB LED](https://github.com/user-attachments/assets/471e4198-2b71-48e8-948a-9fb57b35e25a)
+![스텝 모터](https://github.com/user-attachments/assets/f820cee6-50d7-4b7d-8ac7-d0d683e9e57b)
+
 &nbsp;액추에이터는 RGB LED 3개와 스텝모터를 사용하였다. RGB LED중 2개는 무드등용으로 사용하고 1개는 점멸용으로 사용하였다. 스텝모터는 타이머의 시계바늘을 돌리기 위해 사용하였다.
 
 &nbsp;센서는 초음파 센서와 조도 센서를 사용하였다. 초음파 센서는 사람이 앞에 있는 지 확인하기 위해 사용하였고 조도 센서는 현재 공간의 밝기를 확인하기 위해 사용하였다.
