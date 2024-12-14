@@ -1,4 +1,4 @@
-# 옴짝달싹
+# ⏰ 옴짝달싹
 
 여기 내용, 아이디어 소개 내용 하면 될듯
 본 작품은 사용자 ~~~~ 구현을 목표로 함.
@@ -14,7 +14,7 @@
 | 유민하 | 소프트웨어 | 멀티쓰레드 설계 및 타이머/사이클 구현 |
 
 
-## 전체 시스템 구조
+# 전체 시스템 구조
 <p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/a57f4221-e919-46e0-86c3-4f2c23a6c3f4" /></p>
 
 
@@ -163,6 +163,8 @@
 
 &nbsp;이 외에는 버튼 3개, 저항 7개, YL-40모듈 그리고 스텝 모터 드라이버를 사용하였다. 버튼 3개는 타이머의 시간을 지정하기 위해 사용하였다. 저창은 초음파 센서에 1KΩ을 3개, 버튼에 10KΩ을 각 1개씩, 조도 센서에 10KΩ을 1개 사용하였다. YL-40 모듈은 외부 조도 센서를 사용하기 위해 사용하였다. 스텝 모터 드라이버는 스텝모터를 사용하기 위해 사용하였다.
 
+---
+
 ## 회로 구성
 
 <p align="center"><img src = https://github.com/user-attachments/assets/1638c8c6-d07c-4f13-8642-3b4d1d534ada width="80%" alt="회로 구성"></p>
@@ -194,10 +196,11 @@
 
 **초음파 센서**
 
+---
 
 # 💻 소프트웨어 코드 구성
 
-## SwitchThread
+## 1. SwitchThread
 
 <details>
 <summary>코드 보기</summary>
@@ -329,7 +332,7 @@ delay(1000);
 
 </details> 
 
-## motorThread
+## 2. motorThread
  
 <details>
 <summary>코드 보기</summary>
@@ -484,7 +487,7 @@ pthread_mutex_unlock(&mid);
 - 모든 작업이 종료되면 모터와 버튼 상태를 초기화합니다.
 
 
-## reverseMotor
+## 3. reverseMotor
 
 <details>
 <summary>코드 보기</summary>
@@ -574,7 +577,7 @@ pthread_mutex_unlock(&mid);
 - 동작 완료 후 `isReverse` 플래그를 `false`로 설정하여 상태를 초기화합니다.
 
 
-## turnOnLight
+## 4. turnOnLight
 
 <details>
 <summary>코드 보기</summary>
@@ -612,7 +615,7 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
 - LED 점멸은 3회 반복되며, `softPwmWrite`를 통해 부드러운 색상 전환과 밝기 제어를 구현합니다.
 
 
-## 초음파 센서 ##
+## 5. 초음파 센서
 
  - 설명
 : 공부하는 시간 동안 그 자리에 앉아서 집중하도록 사람이 자리에 있는지 없는 지를 판단한다.
@@ -725,7 +728,7 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
     3. ultrasonicThread에서 현재 거리가 평균 값보다 20 이상 크다면, 사람이 없다고 판단해 isPerson을 false로 바꾼다. isPerson은 모터스레드로 전달되며, false면 모터 작동을 중지한다.
     4. 다시 평균 값과의 차이가 20 이하가 되면 isPerson은 true가 되어 모터를 다시 작동 시킨다.
 
-## 일시정지 구현 ##
+## 6. 일시정지 구현
 - 코드
     
     ```jsx
@@ -771,7 +774,7 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
     - false일 때는 사람이 없으므로 모터가 멈춰야 하고, true일 때는 사람이 있으므로 모터가 작동해야 한다. 그래서 모터가 돌아가기 전 while(!personDetected)로 false이면 while문이 계속 작동되며 그 뒤의 코드 진행이 되지 못한다. delay를 통해 100ms 단위로 다시 true/false를 받아오고, true가 된다면 while 반복이 끝나고 모터가 돌아가는 아래 코드가 실행된다.
     - isPerson을 구하는 기능 또한 멀티 스레드로 작동하기 때문에, 해당 스레드가 작동하는 동안에도 계속 isPerson 값은 변한다.
 
-## 무드등 구현 ##
+## 7. 무드등 구현
 - 코드
     
     ```jsx
@@ -862,3 +865,11 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
         - 코드에서 PerLight는 사용하지 않지만, wiringPiI2CRead()로 값을 읽어올 경우 처음에는 이전 값을 받아오기 때문에 제대로 된 조도 측정을 위하여 값을 두 번 받아온다.
         - 기준 값 이하일 경우 led를 밝게, 이상일 경우 led를 어둡게 설정한다. led는 일반 led가 아닌 rgb를 조절할 수 있는 led로, softPWM을 통해 각 RGB 값을 조절하여 색상과 밝기를 조절하였다.
         - 무드등은 0.5초 동안 빛나고, 상태를 업데이트한다.
+      
+
+### 개발 기간 및 간트차트
+
+- 전체 개발 기간 : 2024-11-26 ~ 2024-12-15
+
+  <p align="center"><img src = https://github.com/user-attachments/assets/4a1ef584-537a-4496-8675-e6877d656ed4 width="80%" alt="버튼 회로"></p>
+
