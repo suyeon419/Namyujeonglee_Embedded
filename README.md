@@ -1,8 +1,24 @@
 # 옴짝달싹
 
+여기 내용, 아이디어 소개 내용 하면 될듯
 본 작품은 사용자 ~~~~ 구현을 목표로 함.
 
-# ✅ 프로젝트 전체 기능
+
+# 팀원 소개 및 역할 분담
+
+| 이름   | 역할            | 주요 업무 내용                     |
+|--------|----------------|-----------------------------------|
+| 이수연 | 팀장/ 하드웨어 | 센서 및 액추에이터 테스트와 회로 설계/구성 |
+| 남은솔 | 하드웨어 | 타이머 디자인 및 3D 모델링 |
+| 정혜리 | 소프트웨어 | 센서 기능 구현 및 멀티쓰레드 병합, 일시 정지 기능 |
+| 유민하 | 소프트웨어 | 멀티쓰레드 설계 및 타이머/사이클 구현 |
+
+
+## 전체 시스템 구조
+<p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/a57f4221-e919-46e0-86c3-4f2c23a6c3f4" /></p>
+
+
+# 프로젝트 전체 요약
 
 - 모터 제어 : 버튼 입력을 통해 일정 시간 모터의 정방향/역방향 회전과 작동을 제어한다.
 - RGB RED 점멸 : 모터의 상태에 따라 RGB LED 색상을 변경한다.
@@ -73,7 +89,7 @@
 # 👨‍🏫 하드웨어 구성
 
 
-![Frame 191 (1)](https://github.com/user-attachments/assets/3f92ae35-6ffe-4b38-b1aa-0e05885d6056)
+<p align="center"><img src = https://github.com/user-attachments/assets/3f92ae35-6ffe-4b38-b1aa-0e05885d6056 width="80%"></p>
 
 
 **타이머의 내부 배치도는 프로젝트의 구성 요소와 배치를 시각적으로 나타낸다.** 
@@ -88,7 +104,7 @@
  
 &nbsp;타이머의 뒷면은 투명한 아크릴로 제작되어 무드등의 빛이 잘 보이도록 디자인되었다. 또한, 사용자가 쉽게 조작할 수 있도록 위에서 아래로 슬라이드할 수 있는 홈이 마련되어 있어, 부품을 쉽게 빼고 넣을 수 있도록 설계되었다.
 
-![Frame 192 (1)](https://github.com/user-attachments/assets/d0f5b168-cd6b-4b61-b3d1-9f1065586a56)
+<p align="center"><img src = https://github.com/user-attachments/assets/d0f5b168-cd6b-4b61-b3d1-9f1065586a56 width="80%"></p>
 
 **다음은 타이머의 상단 배치도로 각 부품의 구성 요소와 배치를 시각적으로 나타낸다.**
 
@@ -99,13 +115,13 @@
 &nbsp;시간 조절용 스위치는 중앙 하단에 위치하며, 사용자가 타이머의 시간을 조절할 수 있는 버튼이다. 브레드보드에 연결된 버튼이 돌출될 수 있도록 구멍이 설계되어 있으며, 간편한 조작을 통해 원하는 공부 시간을 쉽게 설정할 수 있다. 
 
 
-![Frame 193 (1)](https://github.com/user-attachments/assets/e38c0c73-41ca-4788-989e-63f34809528f)
+<p align="center"><img src = https://github.com/user-attachments/assets/e38c0c73-41ca-4788-989e-63f34809528f width="80%"></p>
 
 **초음파센서의 파츠 디자인이다.**
 
 &nbsp;초음파센서가 보다 안정적으로 배치될 수 있도록 부품 사이즈에 맞게 디자인되어 있다.
 
-![Frame 194](https://github.com/user-attachments/assets/3505b28b-9d22-48c0-b468-babaf5525574)
+<p align="center"><img src = https://github.com/user-attachments/assets/3505b28b-9d22-48c0-b468-babaf5525574 width="80%"></p>
 
 **스텝모터의 시계바늘 파츠 디자인이다.**
 
@@ -115,51 +131,66 @@
 
 ## 사용한 액추에이터 및 센서
 
-![RGB LED](https://github.com/user-attachments/assets/471e4198-2b71-48e8-948a-9fb57b35e25a)
-![스텝 모터](https://github.com/user-attachments/assets/f820cee6-50d7-4b7d-8ac7-d0d683e9e57b)
+<table align="center">
+    <tr>
+        <td><img src="https://github.com/user-attachments/assets/471e4198-2b71-48e8-948a-9fb57b35e25a" width="200" alt="RGB LED"></td>
+        <td><img src="https://github.com/user-attachments/assets/f820cee6-50d7-4b7d-8ac7-d0d683e9e57b" width="200" alt="스텝 모터"></td>
+    </tr>
+</table>
 
 &nbsp;액추에이터는 RGB LED 3개와 스텝모터를 사용하였다. RGB LED중 2개는 무드등용으로 사용하고 1개는 점멸용으로 사용하였다. 스텝모터는 타이머의 시계바늘을 돌리기 위해 사용하였다.
 
-![초음파 센서](https://github.com/user-attachments/assets/3f5330a1-d7e1-4292-8486-06c4b3b3d18c)
-![조도 센서](https://github.com/user-attachments/assets/c0f0fec4-b3a6-4217-85e2-cd201c923a58)
+<table align="center">
+    <tr>
+        <td><img src="https://github.com/user-attachments/assets/3f5330a1-d7e1-4292-8486-06c4b3b3d18c" width="300" alt="초음파 센서"></td>
+        <td><img src="https://github.com/user-attachments/assets/c0f0fec4-b3a6-4217-85e2-cd201c923a58" width="300" alt="조도 센서"></td>
+    </tr>
+</table>
 
 &nbsp;센서는 초음파 센서와 조도 센서를 사용하였다. 초음파 센서는 사람이 앞에 있는 지 확인하기 위해 사용하였고 조도 센서는 현재 공간의 밝기를 확인하기 위해 사용하였다.
 
-![버튼](https://github.com/user-attachments/assets/52103e50-5a45-4f7c-a698-f46922f1425b)
-![저항](https://github.com/user-attachments/assets/b860af45-4968-43e0-a77b-5c3ff4b22d36)
-![YL-40모듈](https://github.com/user-attachments/assets/0f095a0e-08a9-480d-8386-21657b2e1f5b)
-![스템모터 드라이버](https://github.com/user-attachments/assets/4599dc88-7950-4e2e-b53e-73fa6b245a77)
+<table align="center">
+    <tr>
+        <td><img src="https://github.com/user-attachments/assets/52103e50-5a45-4f7c-a698-f46922f1425b" width="200" alt="버튼"></td>
+        <td><img src="https://github.com/user-attachments/assets/b860af45-4968-43e0-a77b-5c3ff4b22d36" width="200" alt="저항"></td>
+    </tr>
+    <tr>
+        <td><img src="https://github.com/user-attachments/assets/0f095a0e-08a9-480d-8386-21657b2e1f5b" width="200" alt="YL-40 모듈"></td>
+        <td><img src="https://github.com/user-attachments/assets/4599dc88-7950-4e2e-b53e-73fa6b245a77" width="200" alt="스텝모터 드라이버"></td>
+    </tr>
+</table>
+
 
 &nbsp;이 외에는 버튼 3개, 저항 7개, YL-40모듈 그리고 스텝 모터 드라이버를 사용하였다. 버튼 3개는 타이머의 시간을 지정하기 위해 사용하였다. 저창은 초음파 센서에 1KΩ을 3개, 버튼에 10KΩ을 각 1개씩, 조도 센서에 10KΩ을 1개 사용하였다. YL-40 모듈은 외부 조도 센서를 사용하기 위해 사용하였다. 스텝 모터 드라이버는 스텝모터를 사용하기 위해 사용하였다.
 
 ## 회로 구성
 
-![회로 구성](https://github.com/user-attachments/assets/1638c8c6-d07c-4f13-8642-3b4d1d534ada)
+<p align="center"><img src = https://github.com/user-attachments/assets/1638c8c6-d07c-4f13-8642-3b4d1d534ada width="80%" alt="회로 구성"></p>
 
 
 ### 회로도
 
-![조도 회로](https://github.com/user-attachments/assets/e1e8810e-62a5-4b30-a05e-bb8120d973bd)
+<p align="center"><img src = https://github.com/user-attachments/assets/e1e8810e-62a5-4b30-a05e-bb8120d973bd width="80%" alt="조도 회로"></p>
 
 **YL-40 모듈 및 조도 센서**
 
-![버튼 회로](https://github.com/user-attachments/assets/edd5176d-139f-4f81-ae36-5556996a4047)
+<p align="center"><img src = https://github.com/user-attachments/assets/edd5176d-139f-4f81-ae36-5556996a4047 width="80%" alt="버튼 회로"></p>
 
 **버튼**
 
-![무드등 회로](https://github.com/user-attachments/assets/583bcf8b-c4b5-41c8-94cc-38e51b377abb)
+<p align="center"><img src = https://github.com/user-attachments/assets/583bcf8b-c4b5-41c8-94cc-38e51b377abb width="80%" alt="무드등 회로"></p>
 
 **RGB LED(무드등용)**
 
-![점멸 회로](https://github.com/user-attachments/assets/f1a87311-4bb2-4e6c-a782-cff492fe14fe)
+<p align="center"><img src = https://github.com/user-attachments/assets/f1a87311-4bb2-4e6c-a782-cff492fe14fe width="80%" alt="점멸 회로"></p>
 
 **RGB LED(점멸용)**
 
-![스텝 모터 회로](https://github.com/user-attachments/assets/a66b2c10-40b6-44fc-84d1-d6c452421570)
+<p align="center"><img src = https://github.com/user-attachments/assets/a66b2c10-40b6-44fc-84d1-d6c452421570 width="80%" alt="스텝 모터 회로"></p>
 
 **스텝 모터 드라이버 및 스텝 모터**
 
-![초음파 회로](https://github.com/user-attachments/assets/ffe278d8-e1cc-4526-8a99-f856b46e3ff1)
+<p align="center"><img src = https://github.com/user-attachments/assets/ffe278d8-e1cc-4526-8a99-f856b46e3ff1 width="80%" alt="초음파 회로"></p>
 
 **초음파 센서**
 
