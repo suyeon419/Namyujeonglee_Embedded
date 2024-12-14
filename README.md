@@ -92,4 +92,284 @@
 
 **초음파 센서**
 
+## 소프트웨어 코드 구성
 
+질문: 프로젝트 전체 기능이랑 자세한 기능 설명은 위에 올리는게 낫겠지?
+
+# 프로젝트 전체 기능
+
+- 초음파 측정: 사용자가 자리에 있는지 판단해 모터를 일시정지하거나 작동한다.
+- 무드등 제어: 주변 빛의 밝기에 따라 무드등 밝기를 조절한다.
+
+# 자세한 기능 설명
+
+## 1. 초음파 측정
+
+- 시작 시 사용자 거리 측정
+    - 기기 작동 시작 시 기기와 사용자 간의 거리를 측정해 기준 거리를 구한다.
+- 사용자 거리 측정
+    - 현재 거리와 기준 거리의 차이로 사용자가 자리에 있는지 없는 지를 판별한다.
+- 일시 정지
+    - 사용자가 자리에 없다 판단되면 모터 작동을 일시 정지해 시간이 가지 않도록 한다.
+    - 사용자가 자리에 있으면 시간이 정상적으로 간다.
+    - 쉬는 시간에는 사용자의 자리 유무를 작용하지 않는다.
+
+## 2. 무드등 기능
+
+- 빛 측정
+    - 조도 센서를 통하여 주변 빛의 밝기를 구한다.
+- LED 제어
+    - 주변 빛이 어두우면 LED를 밝히고, 주변 빛이 어두우면 LED를 어둡게 한다.
+
+---
+
+ **초음파 센서**
+
+ - 설명
+: 공부하는 시간 동안 그 자리에 앉아서 집중하도록 사람이 자리에 있는지 없는 지를 판단한다.
+
+- 기능 구현
+
+기능 구현을 위한 함수는 총 4가지다.
+
+- sonicFun(): 초음파 센서로 거리를 측정하는 함수
+    
+    ```jsx
+    double sonicFun() {
+        long long start, end;
+        double distance;
+    
+        digitalWrite(TRIG, HIGH);
+        delayMicroseconds(10);
+        digitalWrite(TRIG, LOW);
+    
+        while (digitalRead(ECHO) == LOW);
+        start = micros();
+        while (digitalRead(ECHO) == HIGH);
+        end = micros();
+    
+        double timeElapsed = (end - start) / 1000000.0;
+        distance = (timeElapsed * 34300) / 2.0;
+    
+    	printf("Sonic distance: %.2f cm \n", distance);
+        return distance;
+    }
+    ```
+    
+    - 초음파는 trig와 echo가 있다. trig 핀에서 초음파를 보내고 물체에 부딪혀서 다시 돌아오는 신호를 echo핀으로 수신한다. 걸린 시간을 계산해 거리를 구한다.
+    - digitalWrite와 digitalRead를 사용하였다. digitalWrite로 Trig핀에 HIGH 신호를 주면 10μs 동안 초음파를 보낸다. 그 후 초음파가 다시 ECHO핀으로 돌아오면 ECHO는 LOW에서 HIGH가 된다. start 변수와 end 변수로 신호 시작 시간과 종료 시간을 측정한다.
+    - timeElapse에 end-start로 초음파가 돌아오는데 걸린 시간을 계산하고, μs단위를 초 단위로 변환해 저장한다.
+    - distance에 음속(34300 cm/s)를 기준으로 반사된 신호의 왕복 시간을 편도 거리로 변환한다. 단위는 cm이다.
+    - distance를 반환하여 다른 곳에서 sonicFun()을 호출해 사용 시 distance 값을 받을 수 있도록 하였다.
+
+- averageDistanceThread(): calculateAverageDistance로 평균값을 구해 calculateDistance 변수에 넣는 함수. 프로그램 시작 시 한번 호출된다. thread로 만드려고 하였지만 해당 함수가 전체 기능 작동의 시작할 때 한 번만 실행되는 점을 고려해 thread가 아닌 일반 함수로 하였다. ← 이거 지울까 말까
+    
+    ```jsx
+    void averageDistanceThread() {
+        printf("Measuring average distance for 10 sec...\n");
+        pthread_mutex_lock(&mid);  // Mutex lock 시작
+        calculatedAverageDistance = calculateAverageDistance(5);  // 평균 거리 계산
+        printf("Average Distance: %.2f cm\n", calculatedAverageDistance);
+        pthread_mutex_unlock(&mid);  // Mutex lock 해제
+    
+    }
+    ```
+    
+    - 기기로부터 사용자가 앉은 거리의 평균 값을 구하는 함수를 호출해 변수에 저장하고, 이를 mutex를 사용해 동기화한다.
+
+- calculateAverageDistance(): 사람이 앉아 있는 경우를 판단하기 위해 평균 값을 측정하는 함수
+    
+    ```jsx
+    double calculateAverageDistance(int durationInSeconds) {
+        int samples = durationInSeconds * 10;
+        double totalDistance = 0.0;
+    
+        for (int i = 0; i < samples; i++) {
+    	    if( i > 10){
+    	        double distance = sonicFun();
+    	        totalDistance += distance;
+    	        printf("Sample %d: %.2f cm\n", i + 1, distance);
+    	        delay(100);
+            }
+        }
+        return totalDistance / (samples - 10);
+    }
+    ```
+    
+    - 초 당 10번 측정하되, 사용자가 기기 시작 버튼을 누르고 자리로 돌아가는 것을 고려해 초기 10번 값은 제외한다.
+    - sonicFun()으로 구한 거리를 totalDistance에 저장하고, 100ms 단위로 측정한다.
+    - 구한 거리를 전부 합친 값을 나눠 평균 거리를 반환한다.
+
+- ultrasonicThread(void *arg): 사용자가 자리에 있는지 없는지 판단하는 함수
+    
+    ```jsx
+    void *ultrasonicThread(void *arg) {
+        while (1) {
+            pthread_mutex_lock(&mid);  // Mutex lock 시작
+            double distance = sonicFun();
+            printf("Distance: %.2f cm\n", distance);
+    
+            // isPerson 값 읽기
+            if (distance > calculatedAverageDistance + 20.0) {
+                isPerson = false;  // 값 쓰기
+                printf("Person has moved away. isPerson: false\n");
+            } else {
+                isPerson = true;  // 값 쓰기
+                printf("Person is present. isPerson: true\n");
+            }
+            pthread_mutex_unlock(&mid);  // Mutex lock 해제
+    
+            delay(500);
+        }
+        return NULL;
+    }
+    ```
+    
+    - sonicFun()을 이용해 사용자의 거리를 꾸준히 측정한다.
+    - 측정한 거리가 위의 두 함수로 구한 평균 값보다 20cm 더 크면, 사용자가 자리에서 일어났다고 생각해 isPerson을 false로 반환한다.
+    - 500ms 간격으로 초음파 측정을 반복한다.
+    - Mutex를 이용해 calculatedAverageDistance와 isPerson을 사용하고, 멀티 쓰레드를 통해 모터가 돌아가는 동시에 실행되도록 한다.
+
+- 진행 순서
+    1. 타이머를 실행하면 5초 간 초음파와 사람이 앉은 간격을 측정해 평균 값을 구한다.
+    2. 모터가 돌아가기 시작하면 ultrasonicThread가 함께 작동된다.
+    3. ultrasonicThread에서 현재 거리가 평균 값보다 20 이상 크다면, 사람이 없다고 판단해 isPerson을 false로 바꾼다. isPerson은 모터스레드로 전달되며, false면 모터 작동을 중지한다.
+    4. 다시 평균 값과의 차이가 20 이하가 되면 isPerson은 true가 되어 모터를 다시 작동 시킨다.
+
+## 일시정지 구현 ##
+- 코드
+    
+    ```jsx
+    void *motorThread(void *arg) {
+        while (1) {
+            pthread_mutex_lock(&mid);
+            int time_left = motor_time;
+            pthread_mutex_unlock(&mid);
+    
+            if (isRun) {
+                int steps = 2048;
+                int delay_time = (time_left * 1000) / steps;
+    
+                for (int c = 0; c < 3; c++) { //study time 3번 반복
+                    printf("[%d] Start of STUDY Time\n", c + 1);
+                    for (int i = 0; i < steps; i++) {
+                        pthread_mutex_lock(&mid);
+                        bool personDetected = isPerson;
+                        pthread_mutex_unlock(&mid);
+    
+                        // 사람이 감지되지 않았을 때 대기
+                        while (!personDetected) {
+                            printf("Motor paused. Waiting for person to be detected...\n");
+                            delay(100); // 100ms 간격으로 상태 확인
+                            
+                            pthread_mutex_lock(&mid);
+                            personDetected = isPerson;
+                            pthread_mutex_unlock(&mid);
+                        }
+                        
+                        // 공부시간 모터가 돌아가는 함수
+                        // 생략 ...
+                    }
+                    
+                    // 생략 ...
+    }
+    ```
+    
+- 설명
+: 초음파 센서를 이용해 얻은 정보로 사용자가 자리에 없으면 멈추는 일시 정지 기능이다.
+    - 모터는 공부 시간과 쉬는 시간으로 나뉜다. 이때 쉬는 시간에는 사람이 자리에 없어도 되므로 공부 시간에만 personDetected를 사용한다.
+    - 모터 스레드에서 공부 시간 사이클을 담당하는 for(int c = 0; c < 3; c++) 의 안에 초음파에서 얻은 isPerson 정보를 personDetected로 불러왔다.
+    - false일 때는 사람이 없으므로 모터가 멈춰야 하고, true일 때는 사람이 있으므로 모터가 작동해야 한다. 그래서 모터가 돌아가기 전 while(!personDetected)로 false이면 while문이 계속 작동되며 그 뒤의 코드 진행이 되지 못한다. delay를 통해 100ms 단위로 다시 true/false를 받아오고, true가 된다면 while 반복이 끝나고 모터가 돌아가는 아래 코드가 실행된다.
+    - isPerson을 구하는 기능 또한 멀티 스레드로 작동하기 때문에, 해당 스레드가 작동하는 동안에도 계속 isPerson 값은 변한다.
+
+## 무드등 구현 ##
+- 코드
+    
+    ```jsx
+    void *moodLampThread(void *arg) {
+    	int i2c_fd;
+        int curLight = 0;
+        int preLight = 0;
+        int threshold = 230;
+        int adcChannel = 2;
+        
+        i2c_fd = wiringPiI2CSetupInterface(I2C_DEV, SLAVE_ADDR_01);
+        
+        printf("I2C start....\n");
+    
+        while (1) {
+            wiringPiI2CWrite(i2c_fd, 0x40 | adcChannel);
+            preLight = wiringPiI2CRead(i2c_fd);
+            curLight = wiringPiI2CRead(i2c_fd);
+    
+            if (curLight < threshold) {
+                //printf("Bright!\n");
+                softPwmWrite(M_R, 80);
+                softPwmWrite(M_G, 80);
+                softPwmWrite(M_B, 100);
+            } else {
+                //printf("Dark!\n");
+                softPwmWrite(M_R, 0);
+                softPwmWrite(M_G, 0);
+                softPwmWrite(M_B, 100);
+            }
+    
+            delay(500);
+        }
+    }
+    ```
+    
+- 설명
+: 공부를 돕기 위해 주변 밝기에 맞춰 무드등의 밝기를 제어한다.
+    
+    ---
+    
+    - 동작 호출
+    1. 초기 상태 설정
+        
+        ```jsx
+        	int i2c_fd;
+            int curLight = 0;
+            int preLight = 0;
+            int threshold = 230;
+            int adcChannel = 2;
+            
+            i2c_fd = wiringPiI2CSetupInterface(I2C_DEV, SLAVE_ADDR_01);
+            
+            printf("I2C start....\n");
+        ```
+        
+        - i2c_fd: I2C를 초기화한다.
+        - PerLight: 코드에서는 사용하지 않지만, wiringPiI2CRead()로 값을 읽어오면 처음에는 이전 값을 저장하기 때문에 정확한 측정을 위하여 이전 조도 값을 따로 저장한다.
+        - curLight: 현재 조도 값을 저장한다.
+        - threshold: 밝기 기준 값으로, 이 변수를 바꿔 기준을 정할 수 있다. 해당 스크립트에서는 실내 조명을 기준으로 하드코딩했다.
+        - I2C 인터페이스로 조도 센서에서 데이터를 읽는다.
+    2. 조도 측정 및 LED 제어 반복
+        
+        ```jsx
+        while (1) {
+                wiringPiI2CWrite(i2c_fd, 0x40 | adcChannel);
+                preLight = wiringPiI2CRead(i2c_fd);
+                curLight = wiringPiI2CRead(i2c_fd);
+        
+                if (curLight < threshold) {
+                    //printf("Bright!\n");
+                    softPwmWrite(M_R, 80);
+                    softPwmWrite(M_G, 80);
+                    softPwmWrite(M_B, 100);
+                } else {
+                    //printf("Dark!\n");
+                    softPwmWrite(M_R, 0);
+                    softPwmWrite(M_G, 0);
+                    softPwmWrite(M_B, 100);
+                }
+        
+                delay(500);
+            }
+        ```
+        
+        - 무한 반복문으로 설정해 특별한 조건 없이 기기가 작동하는 내내 무드등이 작동하도록 하였다.
+        - wiringPiI2CRead로 I2C 버스에서 데이터를 읽어와 ADC 값을 출력한다.
+        - 코드에서 PerLight는 사용하지 않지만, wiringPiI2CRead()로 값을 읽어올 경우 처음에는 이전 값을 받아오기 때문에 제대로 된 조도 측정을 위하여 값을 두 번 받아온다.
+        - 기준 값 이하일 경우 led를 밝게, 이상일 경우 led를 어둡게 설정한다. led는 일반 led가 아닌 rgb를 조절할 수 있는 led로, softPWM을 통해 각 RGB 값을 조절하여 색상과 밝기를 조절하였다.
+        - 무드등은 0.5초 동안 빛나고, 상태를 업데이트한다.
