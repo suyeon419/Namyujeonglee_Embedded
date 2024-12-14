@@ -70,7 +70,7 @@
 ---
 
 
-## 👨‍🏫 하드웨어 구성
+# 👨‍🏫 하드웨어 구성
 
 
 ![Frame 191 (1)](https://github.com/user-attachments/assets/3f92ae35-6ffe-4b38-b1aa-0e05885d6056)
@@ -162,13 +162,422 @@
 **초음파 센서**
 
 
-## 💻 소프트웨어 코드 구성
+# 💻 소프트웨어 코드 구성
 
-## 스위치 스레드 ##
+## SwitchThread
 
 <details>
-<summary>코드</summary>
+<summary>코드 보기</summary>
+
+```c
+void* switchThread(void* arg) {
+    while (1) {
+        for (int i = 0; i < BTN_COUNT; i++) {
+            if (digitalRead(btn_gpio[i]) == LOW) {
+                delay(200);
+                if (digitalRead(btn_gpio[i]) == HIGH) {
+                    printf("Button pressed: %d\n", btn_gpio[i]);
+                    
+                    if (!isRun) {
+                        pthread_mutex_lock(&mid);
+                        motor_time = 25 + (i * 10);
+                        motor_time = motor_time * 60; // 실제 시간 용임(데모는 주석처리)
+                        isRun = true;
+                        btn_state[i] = true;
+                        active_btn = i;
+                        steps_run = 0;
+                        pthread_mutex_unlock(&mid);
+                    }
+                    else if (active_btn == i && !isReverse) {
+                        pthread_mutex_lock(&mid);
+                        isRun = false;
+                        printf("Steps completed: %d\n", steps_run);
+                        pthread_mutex_unlock(&mid);
+                        reverseMotor(steps_run);
+                        pthread_mutex_lock(&mid);
+                        motor_time = 0;
+                        steps_run = 0;
+                        active_btn = -1;
+                        btn_state[i] = false;
+                        pthread_mutex_unlock(&mid);
+                    }
+                    delay(1000);
+                }
+            }
+        }
+    }
+    return NULL;
+}
+```
+
 </details>
+
+- 설명  
+
+버튼 입력을 지속적으로 감지하고, 버튼 상태에 따라 모터의 회전 방향을 제어합니다.
+
+
+#### 동작 흐름  
+
+1. **버튼 상태 확인**  
+
+```c
+for (int i = 0; i < BTN_COUNT; i++) {
+    if (digitalRead(btn_gpio[i]) == LOW) {
+        delay(200);
+        if (digitalRead(btn_gpio[i]) == HIGH) {
+            printf("Button pressed: %d\n", btn_gpio[i]);
+```
+
+- `for` 루프를 통해 `BTN_COUNT(3)` 만큼 반복하며 모든 버튼 상태를 확인합니다.  
+- `digitalRead(btn_gpio[i])`로 현재 버튼의 입력 신호를 읽습니다.  
+- `LOW` 상태 후 신호를 지연시키고, 이후 `HIGH` 상태를 확인해 버튼이 눌렸는지 검증합니다.  
+
+2. **버튼 이벤트 처리**  
+
+(1) **모터가 동작 중이 아닐 때**  
+
+```c
+if (!isRun) {
+    pthread_mutex_lock(&mid);
+    motor_time = 25 + (i * 10);
+    motor_time = motor_time * 60;
+    isRun = true;
+    btn_state[i] = true;
+    active_btn = i;
+    steps_run = 0;
+    pthread_mutex_unlock(&mid);
+}
+```
+
+- 버튼에 따라 `motor_time`을 설정합니다.  
+  - 예: 버튼 0 → 25분, 버튼 1 → 35분, 버튼 2 → 45분.  
+- **상태 플래그 업데이트**  
+  - `isRun → True`: 모터가 동작 중임.  
+  - `btn_state[i] → True`: 어떤 버튼이 활성화되었는지 저장.  
+  - `active_btn`: 눌린 버튼의 인덱스를 저장.  
+- **뮤텍스 사용**으로 공유 자원을 보호합니다.  
+
+(2) **동일한 버튼을 다시 눌렀을 때**  
+
+```c
+else if (active_btn == i && !isReverse) {
+    pthread_mutex_lock(&mid);
+    isRun = false;
+    printf("Steps completed: %d\n", steps_run);
+    pthread_mutex_unlock(&mid);
+    reverseMotor(steps_run);
+    pthread_mutex_lock(&mid);
+    motor_time = 0;
+    steps_run = 0;
+    active_btn = -1;
+    btn_state[i] = false;
+    pthread_mutex_unlock(&mid);
+}
+```
+
+- `isRun → False`: 모터를 정지 상태로 전환(`motorThread`에서 플래그를 읽고 반응).  
+- `reverseMotor(steps_run)`을 호출해 수행한 스텝만큼 역방향으로 복구합니다.  
+- **상태 초기화**  
+  - `motor_time = 0`  
+  - `steps_run = 0`  
+  - `active_btn = -1`  
+  - `btn_state[i] = false`.  
+
+3. **버튼 이벤트 후 딜레이**  
+
+```c
+delay(1000);
+```
+
+- 1초 동안 대기해 동일 버튼이 연속으로 눌리는 것을 방지합니다.
+
+
+
+</details> 
+
+## motorThread
+ 
+<details>
+<summary>코드 보기</summary>
+
+```c
+void* motorThread(void* arg) {
+    while (1) {
+        pthread_mutex_lock(&mid);
+        int time_left = motor_time;
+        pthread_mutex_unlock(&mid);
+
+        if (isRun) {
+            int steps = 2048;
+            int delay_time = (time_left * 1000) / steps;
+
+            for (int c = 0; c < 3; c++) {
+                printf("[%d] Start of STUDY Time\n", c + 1);
+                for (int i = steps - 1; i >= 0; i--) {
+                    if (!isRun) {
+                        printf("Motor stopped prematurely\n");
+                        break;
+                    }
+                    pthread_mutex_lock(&mid);
+                    bool personDetected = isPerson;
+                    pthread_mutex_unlock(&mid);
+
+                    // 사람이 감지되지 않았을 때 대기
+                    while (!personDetected) {
+                        printf("Motor paused. Waiting for person to be detected...\n");
+                        delay(100); // 100ms 간격으로 상태 확인
+
+                        pthread_mutex_lock(&mid);
+                        personDetected = isPerson;
+                        pthread_mutex_unlock(&mid);
+                    }
+
+                    for (int j = 0; j < 4; j++) {
+                        digitalWrite(pin_arr[j], one_phase[i % 4][j]);
+                    }
+                    delay(delay_time);
+
+                    pthread_mutex_lock(&mid);
+                    steps_run++;
+                    pthread_mutex_unlock(&mid);
+                }
+
+                if (!isRun) {
+                    printf("Motor stopped prematurely\n");
+                    break;
+                }
+
+                pthread_mutex_lock(&mid);
+                steps_run = 0;
+                pthread_mutex_unlock(&mid);
+
+                printf("[%d] End of STUDY Time\n", c + 1);
+                turnOnLight(1);
+
+                if (c < 2) {
+                    printf("Start of BREAK Time\n");
+                    reverseMotor(0);
+                    turnOnLight(0);
+                }
+            }
+
+            pthread_mutex_lock(&mid);
+            if (isRun) {
+                motor_time = 0;
+                isRun = false;
+                steps_run = 0;
+                active_btn = -1;
+                for (int i = 0; i < BTN_COUNT; i++) {
+                    btn_state[i] = false;
+                }
+            }
+            pthread_mutex_unlock(&mid);
+        }
+    }
+    return NULL;
+}
+```
+
+</details>
+
+- 설명  
+
+모터의 정방향 회전, 역방향 회전, 사람 감지 대기, 공부-휴식 사이클 제어를 담당합니다.
+
+
+#### 동작 흐름
+
+1. **초기화 및 상태 확인**
+
+```c
+while (1) {
+    pthread_mutex_lock(&mid);
+    int time_left = motor_time;
+    pthread_mutex_unlock(&mid);
+
+    if (isRun) {
+        int steps = 2048;
+        int delay_time = (time_left * 1000) / steps;
+```
+
+- `motor_time` 값을 확인해 모터의 동작 시간을 가져옵니다.  
+- `isRun` 플래그를 확인해 모터가 동작 중인지 판단합니다.  
+- 동작 중이라면 1회전을 위해 필요한 스텝 수를 지정하고, 설정된 `motor_time`에 따라 각 스텝 간 지연 시간을 계산해 `delay_time`에 할당합니다.
+
+2. **사이클 반복**
+
+```c
+for (int c = 0; c < 3; c++) {
+    printf("[%d] Start of STUDY Time\n", c + 1);
+    for (int i = steps - 1; i >= 0; i--) {
+        if (!isRun) {
+            printf("Motor stopped prematurely\n");
+            break;
+        }
+
+        for (int j = 0; j < 4; j++) {
+            digitalWrite(pin_arr[j], one_phase[i % 4][j]);
+        }
+        delay(delay_time);
+
+        pthread_mutex_lock(&mid);
+        steps_run++;
+        pthread_mutex_unlock(&mid);
+    }
+}
+```
+
+- **공부 및 휴식 시간 총 3번 반복**  
+- 각 스텝마다 `one_phase[i % 4][j]` 배열을 통해 현재 스텝에 해당하는 GPIO 핀 상태를 설정해 신호를 전달합니다.  
+- `isRun` 플래그를 확인하여 강제 종료 여부를 확인합니다. 강제 종료 시 `break`로 루프를 빠져나옵니다.
+
+3. **상태 초기화**
+
+```c
+pthread_mutex_lock(&mid);
+if (isRun) {
+    motor_time = 0;
+    isRun = false;
+    steps_run = 0;
+    active_btn = -1;
+    for (int i = 0; i < BTN_COUNT; i++) {
+        btn_state[i] = false;
+    }
+}
+pthread_mutex_unlock(&mid);
+```
+
+- 모든 작업이 종료되면 모터와 버튼 상태를 초기화합니다.
+
+
+## reverseMotor
+
+<details>
+<summary>코드 보기</summary>
+
+```c
+void reverseMotor(int steps) {
+    pthread_mutex_lock(&mid);
+    isReverse = true;
+    pthread_mutex_unlock(&mid);
+    int delay_time = 0;
+    int breakTime = 10 * 60;
+
+    if (steps == 0) {
+        steps = 2048;
+        delay_time = (breakTime * 1000) / steps;
+    }
+    else {
+        delay_time = 5;
+    }
+
+    for (int i = 0; i < steps; i++) {
+        for (int j = 0; j < 4; j++) {
+            digitalWrite(pin_arr[j], one_phase[i % 4][j]);
+        }
+        delay(delay_time);
+    }
+    pthread_mutex_lock(&mid);
+    isReverse = false;
+    pthread_mutex_unlock(&mid);
+    printf("Reverse complete for %d steps\n", steps);
+}
+```
+
+</details>
+
+- 설명  
+
+현재 동작에 적합한 `delay_time`을 설정하고 모터를 역방향으로 회전시키는 코드입니다.
+
+
+#### 동작 흐름
+
+1. **역방향 동작 상태 설정**
+
+```c
+pthread_mutex_lock(&mid);
+isReverse = true;
+pthread_mutex_unlock(&mid);
+```
+
+- `isReverse` 플래그를 활성화하여 현재 모터가 역방향으로 동작 중임을 표시합니다.
+
+2. **딜레이 시간 설정**
+
+```c
+int delay_time = 0;
+int breakTime = 10 * 60;
+
+if (steps == 0) {
+    steps = 2048;
+    delay_time = (breakTime * 1000) / steps;
+}
+else {
+    delay_time = 5;
+}
+```
+
+- `steps`의 값에 따라 각 스텝 간의 딜레이를 다르게 설정합니다.
+  - `steps == 0`: 휴식 시간으로 판단하여 10분 기준으로 `delay_time` 계산.
+  - `steps ≠ 0`: 스텝 수가 지정된 경우 딜레이를 5ms로 고정.
+
+3. **역방향 회전 및 상태 복구**
+
+```c
+for (int i = 0; i < steps; i++) {
+    for (int j = 0; j < 4; j++) {
+        digitalWrite(pin_arr[j], one_phase[i % 4][j]);
+    }
+    delay(delay_time);
+}
+pthread_mutex_lock(&mid);
+isReverse = false;
+pthread_mutex_unlock(&mid);
+```
+
+- `motorThread`의 정방향 회전과 동일한 방식이지만, `i` 값이 반대로 진행되어 회전 방향이 반대로 동작합니다.  
+- 동작 완료 후 `isReverse` 플래그를 `false`로 설정하여 상태를 초기화합니다.
+
+
+## turnOnLight
+
+<details>
+<summary>코드 보기</summary>
+
+```c
+void turnOnLight(int now) {
+    for (int i = 0; i < 3; i++) {
+        if (now == 0) { // 핑크색임 (휴식끝)
+            softPwmWrite(T_R, 0);
+            softPwmWrite(T_G, 50);
+            softPwmWrite(T_B, 0);
+        }
+        else { // 파란색 (공부끝)
+            softPwmWrite(T_R, 100);
+            softPwmWrite(T_G, 100);
+            softPwmWrite(T_B, 0);
+        }
+        delay(500);
+        softPwmWrite(T_R, 100);
+        softPwmWrite(T_G, 100);
+        softPwmWrite(T_B, 100);
+        delay(500);
+    }
+}
+```
+
+</details>
+
+- 설명  
+
+LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 합니다.
+
+
+- `now` 값에 따라 핑크색(휴식 종료) 또는 파란색(공부 종료)으로 LED 색상을 설정합니다.  
+- LED 점멸은 3회 반복되며, `softPwmWrite`를 통해 부드러운 색상 전환과 밝기 제어를 구현합니다.
+
 
 ## 초음파 센서 ##
 
