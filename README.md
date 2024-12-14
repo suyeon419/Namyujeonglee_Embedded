@@ -49,7 +49,15 @@
 
 &nbsp;액추에이터는 RGB LED 3개와 스텝모터를 사용하였다. RGB LED중 2개는 무드등용으로 사용하고 1개는 점멸용으로 사용하였다. 스텝모터는 타이머의 시계바늘을 돌리기 위해 사용하였다.
 
+![초음파 센서](https://github.com/user-attachments/assets/3f5330a1-d7e1-4292-8486-06c4b3b3d18c)
+![조도 센서](https://github.com/user-attachments/assets/c0f0fec4-b3a6-4217-85e2-cd201c923a58)
+
 &nbsp;센서는 초음파 센서와 조도 센서를 사용하였다. 초음파 센서는 사람이 앞에 있는 지 확인하기 위해 사용하였고 조도 센서는 현재 공간의 밝기를 확인하기 위해 사용하였다.
+
+![버튼](https://github.com/user-attachments/assets/52103e50-5a45-4f7c-a698-f46922f1425b)
+![저항](https://github.com/user-attachments/assets/b860af45-4968-43e0-a77b-5c3ff4b22d36)
+![YL-40모듈](https://github.com/user-attachments/assets/0f095a0e-08a9-480d-8386-21657b2e1f5b)
+![스템모터 드라이버](https://github.com/user-attachments/assets/4599dc88-7950-4e2e-b53e-73fa6b245a77)
 
 &nbsp;이 외에는 버튼 3개, 저항 7개, YL-40모듈 그리고 스텝 모터 드라이버를 사용하였다. 버튼 3개는 타이머의 시간을 지정하기 위해 사용하였다. 저창은 초음파 센서에 1KΩ을 3개, 버튼에 10KΩ을 각 1개씩, 조도 센서에 10KΩ을 1개 사용하였다. YL-40 모듈은 외부 조도 센서를 사용하기 위해 사용하였다. 스텝 모터 드라이버는 스텝모터를 사용하기 위해 사용하였다.
 
