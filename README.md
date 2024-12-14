@@ -63,18 +63,32 @@
 
 **회로 구성**
 
+![회로 구성](https://github.com/user-attachments/assets/1638c8c6-d07c-4f13-8642-3b4d1d534ada)
+
 
 **회로도**
 
+![조도 회로](https://github.com/user-attachments/assets/e1e8810e-62a5-4b30-a05e-bb8120d973bd)
+
 **YL-40 모듈 및 조도 센서**
+
+![버튼 회로](https://github.com/user-attachments/assets/edd5176d-139f-4f81-ae36-5556996a4047)
 
 **버튼**
 
+![무드등 회로](https://github.com/user-attachments/assets/583bcf8b-c4b5-41c8-94cc-38e51b377abb)
+
 **RGB LED(무드등용)**
+
+![점멸 회로](https://github.com/user-attachments/assets/f1a87311-4bb2-4e6c-a782-cff492fe14fe)
 
 **RGB LED(점멸용)**
 
+![스텝 모터 회로](https://github.com/user-attachments/assets/a66b2c10-40b6-44fc-84d1-d6c452421570)
+
 **스텝 모터 드라이버 및 스텝 모터**
+
+![초음파 회로](https://github.com/user-attachments/assets/ffe278d8-e1cc-4526-8a99-f856b46e3ff1)
 
 **초음파 센서**
 
