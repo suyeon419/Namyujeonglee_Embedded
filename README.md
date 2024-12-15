@@ -74,14 +74,82 @@
 - LED 제어
     - 주변 빛이 어두우면 LED를 밝히고, 주변 빛이 어두우면 LED를 어둡게 한다.
 
-## 5. 멀티쓰레드 및 뮤텍스
+---
 
-- 멀티쓰레드 구현
-    - switchThread : 버튼 입력을 감지하고 이에 따라 공유 자원을 변경해 모터 동작을 제어한다.
-    - motorThread : 모터의 정방향/ 역방향 회전 및 공부-휴식 사이클 담당한다.
-- 뮤텍스 사용
-    - 공용 자원(motor_time, steps_run, isRun, isReverse 등) 접근 시 동기화를 위해 뮤텍스를 사용한다.
-    - 여러 스레드가 동시에 자원에 접근할 때 발생할 수 있는 충돌을 방지한다.
+## 🔄 멀티쓰레드와 뮤텍스 활용
+
+### 멀티쓰레드
+
+프로그램은 독립적인 작업을 수행하기 위해 4개의 쓰레드를 사용합니다:
+- **`switchThread`**: 버튼 입력 감지 및 상태 관리.
+- **`motorThread`**: 모터 회전, 정지, 반전 제어.
+- **`moodLampThread`**: 조도 센서를 기반으로 무드 램프 색상 변경.
+- **`ultrasonicThread`**: 초음파 센서를 이용해 거리 측정 및 사람 감지.
+
+---
+
+### 뮤텍스
+
+공유 변수 보호를 위해 `pthread_mutex`를 사용하여 다음과 같은 문제를 방지합니다:
+- 쓰레드 간 **데이터 경합**.
+- 공유 자원 접근 시 **비일관성 문제**.
+
+---
+
+### **뮤텍스를 통해 보호되는 주요 변수**
+| **변수 이름**          | **역할**                                                                                     | **관련 쓰레드**                        |
+|-------------------------|---------------------------------------------------------------------------------------------|----------------------------------------|
+| **`isRun`**            | 모터가 현재 실행 중인지 여부.                                                               | `switchThread`, `motorThread`         |
+| **`isReverse`**        | 모터가 반전 동작 중인지 여부.                                                               | `switchThread`, `reverseMotor`        |
+| **`motor_time`**       | 남은 모터 실행 시간 (초 단위).                                                              | `switchThread`, `motorThread`         |
+| **`isPerson`**         | 초음파 센서를 통해 사람이 감지되었는지 여부.                                                | `ultrasonicThread`, `motorThread`     |
+| **`active_btn`**       | 현재 활성화된 버튼의 인덱스를 저장하여 버튼별 동작을 구분.                                    | `switchThread`, `motorThread`         |
+| **`steps_run`**        | 현재 모터가 실행한 스텝 수. 반전 동작에서 동일한 스텝만큼 되돌리기 위해 사용.                 | `motorThread`, `switchThread`         |
+
+---
+
+### **뮤텍스를 활용한 보호 예시**
+
+<details>
+
+#### **1. 버튼 입력과 모터 동작 상태 (`switchThread`)**
+```c
+pthread_mutex_lock(&mid);
+active_btn = i;  // 현재 활성화된 버튼 설정
+motor_time = 25 + (i * 10);
+motor_time = motor_time * 60; 
+isRun = true;    // 모터 동작 시작
+steps_run = 0;   // 스텝 초기화
+pthread_mutex_unlock(&mid);
+```
+
+#### **2. 초음파 센서 데이터 (`ultrasonicThread`)**
+```c
+pthread_mutex_lock(&mid);  // 거리 데이터 보호
+double distance = sonicFun();
+if (distance > calculatedAverageDistance + 20.0) {
+    isPerson = false;  // 사람이 감지되지 않음
+} else {
+    isPerson = true;   // 사람이 감지됨
+}
+pthread_mutex_unlock(&mid);
+```
+
+#### **3. 모터 동작 및 반전 제어 (`motorThread` 및 `reverseMotor`)**
+```c
+// 모터 동작 중 스텝 증가
+pthread_mutex_lock(&mid);
+steps_run++;  // 현재 실행된 스텝 수 증가
+pthread_mutex_unlock(&mid);
+
+// 반전 시 스텝 동작
+pthread_mutex_lock(&mid);
+int current_steps = steps_run;  // 읽어서 반전 실행
+pthread_mutex_unlock(&mid);
+reverseMotor(current_steps);  // 현재 실행된 스텝 수를 기반으로 반전
+```
+</details>
+
 
 ---
 
