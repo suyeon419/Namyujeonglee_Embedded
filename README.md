@@ -15,8 +15,10 @@
 
 
 # 전체 시스템 구조
-<p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/a57f4221-e919-46e0-86c3-4f2c23a6c3f4" /></p>
-
+<p align="center"><img width="400" alt="image" src="https://github.com/user-attachments/assets/90db07ab-1448-469f-bafb-8d92c155f737" /></p>
+<p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/29d29cd3-2ae2-4a5f-910a-8a68147c3bc8" /></p>
+<p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/1c3cb18b-42fe-4b6d-8b90-caf1e3a8f082" /></p>
+<p align="center"><img width="800" alt="image" src="https://github.com/user-attachments/assets/1d954fa9-48a2-45b5-8966-fbc81b0db8b4" /></p>
 
 # 프로젝트 전체 요약
 
@@ -722,7 +724,7 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
     - distance에 음속(34300 cm/s)를 기준으로 반사된 신호의 왕복 시간을 편도 거리로 변환한다. 단위는 cm이다.
     - distance를 반환하여 다른 곳에서 sonicFun()을 호출해 사용 시 distance 값을 받을 수 있도록 하였다.
 
-- averageDistanceThread(): calculateAverageDistance로 평균값을 구해 calculateDistance 변수에 넣는 함수. 프로그램 시작 시 한번 호출된다. thread로 만드려고 하였지만 해당 함수가 전체 기능 작동의 시작할 때 한 번만 실행되는 점을 고려해 thread가 아닌 일반 함수로 하였다. ← 이거 지울까 말까
+- averageDistanceThread(): calculateAverageDistance로 평균값을 구해 calculateDistance 변수에 넣는 함수. 프로그램 시작 시 한번 호출된다. thread로 만드려고 하였지만 해당 함수가 전체 기능 작동의 시작할 때 한 번만 실행되는 점을 고려해 thread가 아닌 일반 함수로 하였다.
     
     ```jsx
     void averageDistanceThread() {
@@ -939,5 +941,6 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
 
 - 전체 개발 기간 : 2024-11-26 ~ 2024-12-15
 
-  <p align="center"><img src = https://github.com/user-attachments/assets/4a1ef584-537a-4496-8675-e6877d656ed4 width="80%" alt="버튼 회로"></p>
+![임베디드_기말프로젝트 - 시트1-1](https://github.com/user-attachments/assets/733ff112-e30a-4864-b86c-1470b0fa211f)
 
+[임베디드_기말프로젝트 - 시트1.pdf](https://github.com/user-attachments/files/18194381/_.-.1.pdf)
