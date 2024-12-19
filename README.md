@@ -977,7 +977,7 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
   btn_state[i] = false;
   pthread_mutex_unlock(&mid);
   ```
-  -변경 후
+  - 변경 후
   ```jsx
   pthread_mutex_lock(&mid);
   isRun = false;
