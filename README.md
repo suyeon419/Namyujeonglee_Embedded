@@ -958,9 +958,44 @@ LED를 제어하여 공부 및 휴식 상태의 종료를 알리는 역할을 �
 # 고찰
 
 ## 문제 및 해결 방안
+- 초음파 센서 관련 문제
+      &nbsp;모터가 동작하는 중 초음파 센서가 인식하는 값과 관계없이 타이머의 동작 제어가 되지 않았고 공부 시간이 아닐 때에도 타이머의 동작이 정지된다는 문제가 있었다.
+      &nbsp;이를 while문을 사용하여 사람이 감지되지 않았을 때 타이머 동작을 제어하도록 하였고, 쉬는 시간일 때는 personDetected 값을 받지 않아 타이머 동작에 영향을 주지 않도록 하였다.
+- reverseMotor 함수 문제
+      &nbsp;reverseMotor 호출 전에 뮤텍스를 해제하여 중첩 잠금 문제를 해결하였다. 또한, 호출 후 필요한 상태 변경 작업에만 뮤텍스를 다시 잠그고 보호하고 호출 전과 호출 후 작업에서 각각 필요한 뮤텍스 잠금을 하도록 하였다.
+  - 변경 전
+  ```jsx
+  pthread_mutex_lock(&mid);
+  isRun = false;
+  printf("Steps completed: %d\n", steps_run);
+
+  reverseMotor(steps_run);
+
+  motor_time = 0;
+  steps_run = 0;
+  activie_btn = -1;
+  btn_state[i] = false;
+  pthread_mutex_unlock(&mid);
+  ```
+  -변경 후
+  ```jsx
+  pthread_mutex_lock(&mid);
+  isRun = false;
+  printf("Steps completed: %d\n", steps_run);
+  pthread_mutex_unlock(&mid_;
+
+  reverseMotor(steps_run);
+
+  pthread_mutex_lock(&mid);
+  motor_time = 0;
+  steps_run = 0;
+  activie_btn = -1;
+  btn_state[i] = false;
+  pthread_mutex_unlock(&mid);
+  ```
 
 ## 개선 하고 싶은 부분
-&nbsp;무드등의 밝기가 2단계로 조절되는데, 주변 환경의 밝기에 따라 자연스럽게 빛이 조절되도록 개선하고 싶다.
+&nbsp;현재는 무드등의 밝기가 2단계로 조절되는데, 주변 환경의 밝기에 따라 자연스럽게 빛이 조절되도록 개선하고 싶다.
 
 # 시연 동영상
 
